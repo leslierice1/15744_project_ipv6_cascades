@@ -1,13 +1,15 @@
 import argparse
+import json
 import os
 from bz2 import BZ2File as bzopen
 
 import networkx as nx
+from networkx.readwrite import json_graph
 
 
 class ASRelationships:
     def __init__(self):
-        self.G = nx.MultiDiGraph()
+        self.G = nx.DiGraph()
 
     def add_connection(self, as1, as2, relationship_type):
         if relationship_type == -1:
@@ -33,9 +35,10 @@ class ASRelationships:
                     relationship_type = int(l[2])
                     self.add_connection(as1, as2, relationship_type)
 
+
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data-dir', default='as_relationships_data')
+    parser.add_argument('--data-dir', type=str, default='as_relationships_data')
     return parser.parse_args()
 
 
@@ -46,6 +49,10 @@ def main():
         as_relationships.parse_as_rel_file(os.path.join(args.data_dir, fname))
     print(f'# nodes: {len(as_relationships.G.nodes)}')
     print(f'# edges: {len(as_relationships.G.edges)}')
+    data = json_graph.node_link_data(as_relationships.G)
+    with open('as_relationships_data.json', 'w') as outfile:
+        json.dump(data, outfile)
+
 
 if __name__ == "__main__":
     main()

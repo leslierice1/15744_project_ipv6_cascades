@@ -1,2 +1,3 @@
-as_relationships_data/
 env/
+.DS_Store
+as_relationships_data.json
