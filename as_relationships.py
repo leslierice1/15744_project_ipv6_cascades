@@ -9,16 +9,17 @@ from networkx.readwrite import json_graph
 
 class ASRelationships:
     def __init__(self):
-        self.G = nx.DiGraph()
+        self.G = nx.Graph()
 
     def add_connection(self, as1, as2, relationship_type):
         if relationship_type == -1:
             # p2c relationship: as1=provider, as2=customer
-            self.G.add_edge(as2, as1, label='c2p')
+            # self.G.add_edge(as2, as1, label='c2p')
+            pass
         elif relationship_type == 0:
             # p2p relationship
             self.G.add_edge(as1, as2, label='p2p')
-            self.G.add_edge(as2, as1, label='p2p')
+            # self.G.add_edge(as2, as1, label='p2p')
         else:
             raise Exception('Invalid relationship type!')
 
@@ -46,6 +47,8 @@ def main():
     args = get_args()
     as_relationships = ASRelationships()
     for fname in os.listdir(args.data_dir):
+        if not fname.endswith('.bz2'):
+            continue
         as_relationships.parse_as_rel_file(os.path.join(args.data_dir, fname))
     print(f'# nodes: {len(as_relationships.G.nodes)}')
     print(f'# edges: {len(as_relationships.G.edges)}')
