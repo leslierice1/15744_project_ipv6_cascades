@@ -3,4 +3,4 @@ env/
 .ipynb_checkpoints/
 as_relationships_data/
 as_links_data/
-
+__pycache__
