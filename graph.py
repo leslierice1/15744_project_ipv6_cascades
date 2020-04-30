@@ -1,10 +1,11 @@
 import datetime
+import time
 import gzip
 import os
 import networkx as nx
 from bz2 import BZ2File as bzopen
 from dateutil.relativedelta import *
-
+from collections import defaultdict
 from data import AS_LINKS_DATA_DIR, AS_REL_DATA_DIR, download_as_links_files, download_as_links_files, download_as_rel_file
 
 
@@ -14,6 +15,20 @@ class IPv6Graph:
         self.start_date = start_date
         self.end_date = end_date
         self.ipv6_nodes = set()
+        self.adoption_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+
+    def update_adoption_dict(self, cur_date):
+        cur_date_posix = int(time.mktime(cur_date.timetuple()))
+        for node in self.G.nodes:
+            n = self.G.nodes[node]
+            if n.get('ipv6') and n.get('time_adopted') < cur_date:
+                continue
+            neighbors = list(self.G.neighbors(node))
+            k = len(list(filter(lambda x: self.G.nodes[x].get('ipv6') and self.G.nodes[x].get('time_adopted') < cur_date, neighbors)))
+            if n.get('ipv6') and n.get('time_adopted') == cur_date:
+                self.adoption_dict[cur_date_posix][k]['adopted'] += 1
+            else:
+                self.adoption_dict[cur_date_posix][k]['not_adopted'] += 1
 
     def update_relationships(self, year, month):
         fname = os.path.join(AS_REL_DATA_DIR, f'{year}{month}01.as-rel.txt.bz2')
@@ -49,6 +64,7 @@ class IPv6Graph:
         self.G.nodes[as_]['num_neighbors'] = num_neighbors
         if len(ipv6_neighbors) > 0:
             ipv6_neighbor_times_adopted = [self.G.nodes[x].get('time_adopted') for x in ipv6_neighbors]
+            self.G.nodes[as_]['neighbor_first_adopted'] = min(ipv6_neighbor_times_adopted)
             self.G.nodes[as_]['neighbor_last_adopted'] = max(ipv6_neighbor_times_adopted)
 
     def parse_as_links_file(self, fname, cur_date):
@@ -97,6 +113,7 @@ class IPv6Graph:
                 self.parse_as_links_file(fname_, cur_date)
             print('# IPv6 nodes: ', len(self.ipv6_nodes))
             ipv6_nodes_monthly[cur_date] = len(self.ipv6_nodes)
+            self.update_adoption_dict(cur_date)
             cur_date += relativedelta(months=+1)
         return ipv6_nodes_monthly
 
