@@ -13,12 +13,19 @@ def query_as_rank(asn):
     request = requests.post(URL,json={'query':query})
     if request.status_code == 200:
         json_ = request.json()['data']
-        as_rank = json_['asn']['rank']
-        as_name = json_['asn']['organization']['orgName']
-        customer_cone_size = json_['cone']['numberAsns']
-        print(json_)
-        print(as_rank, as_name, customer_cone_size)
-        return dict(as_rank=as_rank, as_name=as_name, customer_cone_size=customer_cone_size)
+        try:
+            as_rank = json_['asn']['rank']
+        except:
+            as_rank = None
+        try:
+            as_name = json_['asn']['organization']['orgName']
+        except:
+            as_name = None
+        try:
+            customer_cone_size = json_['asn']['cone']['numberAsns']
+        except:
+            customer_cone_size = None
+        return (as_rank, as_name, customer_cone_size)
     else:
         print("Query failed to run returned code of %d " % (request.status_code))
 

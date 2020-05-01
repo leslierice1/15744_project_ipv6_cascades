@@ -7,7 +7,7 @@ from bz2 import BZ2File as bzopen
 from dateutil.relativedelta import *
 from collections import defaultdict
 from data import AS_LINKS_DATA_DIR, AS_REL_DATA_DIR, download_as_links_files, download_as_links_files, download_as_rel_file
-
+from as_rank import query_as_rank
 
 class IPv6Graph:
     def __init__(self, start_date, end_date):
@@ -52,6 +52,15 @@ class IPv6Graph:
                         raise Exception('Invalid relationship type!')
                     if (as1, as2) not in self.G.edges:
                         self.G.add_edge(as1, as2, label=r, timestamp=datetime.date(year=int(year), month=int(month), day=1))
+                        # for as_ in [as1, as2]:
+                        #     if self.G.nodes[as_].get('as_rank') is None:
+                        #         try:
+                        #             as_rank, as_name, customer_cone_size = query_as_rank(as_)
+                        #             self.G.nodes[as_]['as_rank'] = as_rank
+                        #             self.G.nodes[as_]['as_name'] = as_name
+                        #             self.G.nodes[as_]['customer_cone_size'] = customer_cone_size
+                        #         except Exception as e:
+                        #             print(e)
 
     def mark_adopted(self, as_, cur_date):
         self.G.nodes[as_]['ipv6'] = True
